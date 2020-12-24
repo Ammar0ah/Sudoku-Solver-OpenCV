@@ -14,6 +14,7 @@ def basic_preprocess(img):
 
 def draw_corners(img, contours):
     polygon = contours[0]
+
     bottom_right, _ = max(enumerate([pt[0][0] + pt[0][1] for pt in
                                      polygon]), key=operator.itemgetter(1))
     top_left, _ = min(enumerate([pt[0][0] + pt[0][1] for pt in
@@ -65,10 +66,15 @@ def find_grid_cells(img):
 def extract_digits(img):
     squares = find_grid_cells(img)
     digits = []
+    sift = cv.SIFT_create()
+
     for i, square in enumerate(squares):
         p1, p2 = square
         digit = img[p1[0]:p2[0], p1[1]:p2[1]]
-        # digit = cv.resize(digit,(50,50))
+        # digit = cv.pyrUp(digit)
         digits.append(digit)
+        kp = sift.detect(digit)
+        # print(kp)
+        # digit = cv.drawKeypoints(digit, kp, outImage=None)
         cv.imwrite(f'imgs/digits/digit{i + 1}.jpg', digit)
     return digits
