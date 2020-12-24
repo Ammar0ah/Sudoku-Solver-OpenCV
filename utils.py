@@ -1,15 +1,16 @@
 import operator
 import cv2 as cv
 import numpy as np
-
+import number_detection
 
 def basic_preprocess(img):
-    gray = cv.cvtColor(img.copy(), cv.COLOR_BGR2GRAY)
-    blur = cv.GaussianBlur(gray, (9, 9), 2)
-    threshold = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY_INV, 11, 2)
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    blur = cv.GaussianBlur(gray, (5,5), 2)
+    threshold = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY_INV, 5, 2)
     kernel = np.array([[0., 1., 0.], [1., 1., 1.], [0., 1., 0.]], np.uint8)
     dilated = cv.dilate(threshold, kernel)
-    return dilated
+    erod = cv.erode(dilated,kernel,iterations=1)
+    return erod
 
 
 def draw_corners(img, contours):
@@ -71,10 +72,15 @@ def extract_digits(img):
     for i, square in enumerate(squares):
         p1, p2 = square
         digit = img[p1[0]:p2[0], p1[1]:p2[1]]
-        # digit = cv.pyrUp(digit)
+
+        digit = cv.pyrUp(digit)
         digits.append(digit)
-        kp = sift.detect(digit)
+        cv.imwrite(f'imgs/digits/digit{i + 1}.jpg', digit)
+        digit = number_detection.fast_detector(digit)
+        cv.imshow('digit',digit)
+        # cv.waitKey(0)
+
         # print(kp)
         # digit = cv.drawKeypoints(digit, kp, outImage=None)
-        cv.imwrite(f'imgs/digits/digit{i + 1}.jpg', digit)
+
     return digits
